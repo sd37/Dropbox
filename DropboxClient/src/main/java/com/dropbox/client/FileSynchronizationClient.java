@@ -1,4 +1,4 @@
-package client;
+package com.dropbox.client;
 
 /**
  * Created by spandan on 12/21/14.
