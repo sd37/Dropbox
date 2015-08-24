@@ -12,5 +12,12 @@
     <groupId>DropboxServer</groupId>
     <artifactId>DropboxServer</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>DropboxCommon</groupId>
+            <artifactId>DropboxCommon</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>
