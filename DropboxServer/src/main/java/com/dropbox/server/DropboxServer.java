@@ -1,11 +1,14 @@
 package com.dropbox.server;
 
-import com.dropbox.common.DropBoxFile;
-import com.dropbox.common.DropboxProtocol;
+import com.dropbox.common.dirs.DropboxDirServer;
+import com.dropbox.common.protocol.DropboxServerProtocol;
+import com.dropbox.common.util.DropboxConstants;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,7 +22,6 @@ import java.util.Map;
  */
 
 public class DropboxServer implements FileSynchronizationServer {
-  public static final String SERVER_FOLDER = System.getProperty("server.folder", "/tmp/server");
   private static final Log LOG = LogFactory.getLog(DropboxServer.class);
   private ServerSocket serverSocket;
   private static final int SERVER_PORT = Integer.parseInt(System.getProperty("port", "8945"));
@@ -34,19 +36,31 @@ public class DropboxServer implements FileSynchronizationServer {
     Socket clntSock = serverSocket.accept();
     SocketAddress clientAddr = clntSock.getRemoteSocketAddress();
     LOG.info("Serving Client = " + clientAddr);
-    DropboxProtocol protocol = new DropboxProtocol(clntSock);
-    DropBoxFile f = null;
+    DropboxServerProtocol protocol = new DropboxServerProtocol(clntSock);
+    DropboxDirServer f = null;
     String clientId = null;
     try {
+      if (!DropboxConstants.CLIENT_SANITY_STRING.equals(protocol.readString())) {
+        LOG.error("client = " + clientAddr + " Does not follow protocol." + "Closing clntSock = "
+            + clntSock);
+        clntSock.close();
+        return;
+      }
       clientId = protocol.readString();
       Assert.assertNotNull(clientId);
-      clientToPath.put(clientId, SERVER_FOLDER + "/" + clientId);
-      f = protocol.readFileServer(SERVER_FOLDER);
-    } catch (IOException ioe) {
-      LOG.error("Could not read file from the client = " + clientId);
-      return;
+      clientToPath.put(clientId, DropboxConstants.DEFAULT_DROPBOX_SERVER_DIR + "/" + clientId);
+
+      // Delete the corresponding clientId dir .. because the client is trying to sync.
+      FileUtils.deleteDirectory(new File(clientToPath.get(clientId)));
+
+      f = protocol.readDir();
+      LOG.info("File Read = " + f.toString());
+    } catch (IOException | ClassNotFoundException ioe) {
+      LOG.error("Could not read file from the client = " + clientId, ioe);
+    } finally {
+      clntSock.close();
     }
-    LOG.info("File Read = " + f.toString());
+    LOG.info("Served client = " + clientAddr);
   }
 
   @Override
