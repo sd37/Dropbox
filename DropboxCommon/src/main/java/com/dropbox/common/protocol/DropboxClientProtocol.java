@@ -8,10 +8,11 @@ import com.dropbox.common.util.DropboxUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;

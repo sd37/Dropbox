@@ -23,13 +23,18 @@ import java.util.Map;
 
 public class DropboxServer implements FileSynchronizationServer {
   private static final Log LOG = LogFactory.getLog(DropboxServer.class);
-  private ServerSocket serverSocket;
   private static final int SERVER_PORT = Integer.parseInt(System.getProperty("port", "8945"));
+  private ServerSocket serverSocket;
   private Map<String, String> clientToPath;
 
   private DropboxServer() throws IOException {
     clientToPath = new HashMap<>();
     serverSocket = new ServerSocket(SERVER_PORT);
+  }
+
+  public static void main(String[] args) throws IOException {
+    DropboxServer server = new DropboxServer();
+    server.listen();
   }
 
   private void listenOnce() throws IOException {
@@ -72,10 +77,5 @@ public class DropboxServer implements FileSynchronizationServer {
         throw new RuntimeException("Server failed to listen", e);
       }
     }
-  }
-
-  public static void main(String[] args) throws IOException {
-    DropboxServer server = new DropboxServer();
-    server.listen();
   }
 }

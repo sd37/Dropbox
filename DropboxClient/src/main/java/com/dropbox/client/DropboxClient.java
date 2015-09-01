@@ -21,6 +21,12 @@ public class DropboxClient implements FileSynchronizationClient {
   private static final String CLIENT_ID = System.getProperty("client.id", "client1");
   private DropboxClientProtocol protocol;
 
+  public static void main(String[] args) {
+    DropboxClient client = null;
+    client = new DropboxClient();
+    client.run();
+  }
+
   @Override
   public void run() {
     while (sync()) {
@@ -65,12 +71,6 @@ public class DropboxClient implements FileSynchronizationClient {
 
     LOG.info(String.format("Sync with DROPBOX_SERVER = %s was successful.", DROPBOX_SERVER));
     return true;
-  }
-
-  public static void main(String[] args) {
-    DropboxClient client = null;
-    client = new DropboxClient();
-    client.run();
   }
 
 }

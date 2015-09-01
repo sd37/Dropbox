@@ -6,7 +6,7 @@ package com.dropbox.client;
  */
 
 public interface FileSynchronizationClient {
-    void run();
+  void run();
 
-    boolean sync();
+  boolean sync();
 }

@@ -6,5 +6,5 @@ package com.dropbox.server;
  */
 
 public interface FileSynchronizationServer {
-    void listen();
+  void listen();
 }

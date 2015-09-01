@@ -49,8 +49,7 @@ public class DropboxDirClient implements Serializable {
         clientFiles.add(new DropboxFileClient(f));
       } else if (f.toFile().isDirectory()) {
         clientFiles.addAll(getClientFiles(f.toFile().getAbsolutePath()));
-      }
-      else {
+      } else {
         throw new RuntimeException("Illegal file format found. Only visible files and " +
             "dirs supported.");
       }

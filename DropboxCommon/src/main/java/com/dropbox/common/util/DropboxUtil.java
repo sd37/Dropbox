@@ -1,6 +1,5 @@
 package com.dropbox.common.util;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 
 import java.io.*;
@@ -49,12 +48,11 @@ public class DropboxUtil {
     InputStream in = Files.newInputStream(Paths.get(metaPath));
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
     Map<String, String> mp = new HashMap<>();
-    while(true) {
+    while (true) {
       String line = reader.readLine();
       if (line == null) {
         break;
-      }
-      else if(line.equals("\n")) {
+      } else if (line.equals("\n")) {
         throw new RuntimeException("Illegal METADATA file format.. file is corrupted.");
       }
       String[] parts = line.split("|");
