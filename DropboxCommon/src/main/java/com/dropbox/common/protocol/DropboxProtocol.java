@@ -5,6 +5,15 @@ import org.junit.Assert;
 import java.io.*;
 import java.net.Socket;
 
+/* The general protocol for now is :
+ * The client sends the following things in order to the server in order.
+ *
+ * CLIENT, CLIENT_ID, DIR
+ * For the DIR part. You first send an object representing meta data about the dir.
+ * Then you send all the individual files in the dir.
+ *
+ * The Server verifies the client and reads the dir.
+ */
 public class DropboxProtocol {
   protected Socket sock;
   protected InputStream inputStream;
