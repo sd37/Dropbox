@@ -1,5 +1,6 @@
 package com.dropbox.common.util;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 
 import java.io.*;
@@ -61,5 +62,23 @@ public class DropboxUtil {
     }
     in.close();
     return mp;
+  }
+
+  public static void writeByteBuffer(byte[] buf, OutputStream out) throws
+      IOException {
+    Assert.assertNotNull(buf);
+    Assert.assertNotNull(out);
+    DataOutputStream dataOut = new DataOutputStream(out);
+    dataOut.writeInt(buf.length);
+    dataOut.write(buf, 0, buf.length);
+  }
+
+  public static byte[] readByteBuffer(InputStream in) throws IOException {
+    Assert.assertNotNull(in);
+    DataInputStream dataIn = new DataInputStream(in);
+    int len = dataIn.readInt();
+    byte[] buf = new byte[len];
+    dataIn.readFully(buf);
+    return buf;
   }
 }

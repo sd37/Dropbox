@@ -6,6 +6,7 @@ import com.dropbox.common.files.DropboxFileClient;
 import com.dropbox.common.files.DropboxFileServer;
 import com.dropbox.common.util.DropboxConstants;
 import com.dropbox.common.util.DropboxUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 
 import java.io.FileOutputStream;
@@ -35,12 +36,13 @@ public class DropboxServerProtocol extends DropboxProtocol {
     int totalReadBytes = 0;
     try {
       while (totalReadBytes < clientFile.getLen()) {
-        int b = inputStream.read();
-        if (b < 0) {
+        byte[] b = DropboxUtil.readByteBuffer(inputStream);
+        if (b == null) {
           break;
         }
-        out.write(b);
-        totalReadBytes++;
+        byte[] decodeB = Base64.decodeBase64(b);
+        out.write(decodeB, 0, decodeB.length);
+        totalReadBytes += decodeB.length;
       }
     } catch (IOException ioe) {
       throw new RuntimeException("Error in writing file to disk", ioe);

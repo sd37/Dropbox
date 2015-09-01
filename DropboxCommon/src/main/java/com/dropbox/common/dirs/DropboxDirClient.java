@@ -39,14 +39,27 @@ public class DropboxDirClient implements Serializable {
     return this.clientDirPath;
   }
 
-  public List<DropboxFileClient> getClientFiles() throws IOException {
+  private List<DropboxFileClient> getClientFiles(String dirPath) throws IOException {
+    Assert.assertNotNull(dirPath);
     List<DropboxFileClient> clientFiles = new ArrayList<>();
 
-    DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(this.clientDirPath));
+    DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dirPath));
     for (Path f : stream) {
-      clientFiles.add(new DropboxFileClient(f));
+      if (f.toFile().isFile()) {
+        clientFiles.add(new DropboxFileClient(f));
+      } else if (f.toFile().isDirectory()) {
+        clientFiles.addAll(getClientFiles(f.toFile().getAbsolutePath()));
+      }
+      else {
+        throw new RuntimeException("Illegal file format found. Only visible files and " +
+            "dirs supported.");
+      }
     }
     return clientFiles;
+  }
+
+  public List<DropboxFileClient> getClientFiles() throws IOException {
+    return getClientFiles(this.clientDirPath);
   }
 
   private void writeObject(ObjectOutputStream out)

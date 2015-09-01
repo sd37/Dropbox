@@ -4,6 +4,8 @@ package com.dropbox.common.protocol;
 import com.dropbox.common.dirs.DropboxDirClient;
 import com.dropbox.common.files.DropboxFileClient;
 import com.dropbox.common.util.DropboxConstants;
+import com.dropbox.common.util.DropboxUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 
 import java.io.*;
@@ -11,6 +13,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 public class DropboxClientProtocol extends DropboxProtocol {
@@ -32,9 +35,11 @@ public class DropboxClientProtocol extends DropboxProtocol {
       if (readBytes < 0) {
         break;
       }
-      outputStream.write(buf, 0, readBytes);
-    }
 
+      byte[] actualBuf = Arrays.copyOfRange(buf, 0, readBytes);
+      byte[] encodedBuf = Base64.encodeBase64(actualBuf);
+      DropboxUtil.writeByteBuffer(encodedBuf, outputStream);
+    }
     bufIn.close();
   }
 
