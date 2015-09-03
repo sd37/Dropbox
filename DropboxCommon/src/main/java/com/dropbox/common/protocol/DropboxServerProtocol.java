@@ -7,10 +7,15 @@ import com.dropbox.common.files.DropboxFileServer;
 import com.dropbox.common.util.DropboxConstants;
 import com.dropbox.common.util.DropboxUtil;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,8 +24,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DropboxServerProtocol extends DropboxProtocol {
-  public DropboxServerProtocol(Socket sk) throws IOException {
+  private final Object lockObject;
+  private String clientId;
+  private static final Log LOG = LogFactory.getLog(DropboxServerProtocol.class);
+
+  public DropboxServerProtocol(Socket sk, Object lockObject) throws IOException {
     super(sk);
+    this.lockObject = lockObject;
+
+    if (!DropboxConstants.CLIENT_SANITY_STRING.equals(readString())) {
+      throw new ProtocolException("client = " + sk.getRemoteSocketAddress() + " Does not follow protocol.");
+    }
+
+    this.clientId = readString();
+    Assert.assertNotNull(clientId);
+  }
+
+  public String getClientId() {
+    return clientId;
   }
 
   public DropboxFileServer readFile() throws IOException, ClassNotFoundException {
@@ -57,16 +78,22 @@ public class DropboxServerProtocol extends DropboxProtocol {
   public DropboxDirServer readDir() throws IOException, ClassNotFoundException {
     DropboxDirClient clientDir = (DropboxDirClient) objectInputStream.readObject();
     String serverDirPath = DropboxConstants.DEFAULT_DROPBOX_SERVER_DIR
-        + DropboxUtil.constructClientPath(clientDir.getFullPath());
-
-    Path pathToDir = Paths.get(serverDirPath);
-    Files.createDirectories(pathToDir.getParent());
+        + "/" + clientId;
 
     List<DropboxFileServer> serverFiles = new ArrayList<>();
-    for (int i = 0; i < clientDir.getNumberOfFiles(); i++) {
-      serverFiles.add(readFile());
+    DropboxDirServer dropboxDirServer = null;
+
+    synchronized (lockObject) {
+      FileUtils.deleteDirectory(new File(serverDirPath));
+      Path pathToDir = Paths.get(serverDirPath);
+      Files.createDirectories(pathToDir.getParent());
+
+      for (int i = 0; i < clientDir.getNumberOfFiles(); i++) {
+        serverFiles.add(readFile());
+      }
+      dropboxDirServer = new DropboxDirServer(clientDir.getFullPath(), serverDirPath, serverFiles);
     }
 
-    return new DropboxDirServer(clientDir.getFullPath(), serverDirPath, serverFiles);
+    return dropboxDirServer;
   }
 }
